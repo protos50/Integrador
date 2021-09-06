@@ -1,14 +1,17 @@
-/* */
+/* Proyecto Integrador - 1ra. Etapa */
 #include <stdio.h>
 
 void esperarIntro(void);
 
 
+
 int main(void){	
+
 
 	esperarIntro();
 	return 0;
 }
+
 
 void esperarIntro(void){
 	fflush(stdin);
