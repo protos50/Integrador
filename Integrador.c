@@ -10,8 +10,9 @@
 
 void esperarIntro(void), firstScreen(void), mostrarFechaYHora(void), mensajeBienvenida(void), mensaje(void);
 void generarBinario(void), ingresarDatosClientes(void), mostrarOpcionesComidas(void), mostrarOpcionesBebidas(void);
-void ingresarPedidoBebida(void), ingresarPedidoComida(void), mostrarPedidoCliente(void);
-;
+void ingresarPedidoBebida(void), ingresarPedidoComida(void), mostrarPedidoCliente(void), mostrarPedidoCliente(void);
+void grabarArchivoConsumoClientes(void), grabarRegistros(void), finalizarGrabadoRegistros(void);
+char caracterRespuesta(void);
 
 typedef char tString[midChar];
 typedef char tLongString[longChar];
@@ -29,15 +30,18 @@ typedef struct /* estructura de lo que pide un cliente y su correspondiente cost
 
 tPedidoCliente vPedidoCliente;
 FILE *f_RegistrosClientes;
-
+/* utilizar struct para el registro de comida con su respectivo precio. por ahora crear un vector con los correspondientes precios de cada elemento */
+/* cada elemento de comida se correspondera con su indice en el vector de precios para calcular el total que pago el cliente. multiplicando el precio*/
+/* de la comida por la cantidad correspondiente que pidio. el total se guardara en totalCuenta que se guardara en el registro y en el archivo */
 tOpcionComidas opcionComidas = {"Hamburguesa[0]", "Papas[1]", "Ensalada[2]", "Pancho[3]", "Veganos[4]"}; /* opciones de comidas que el cliente elige */
 tOpcionBebidas opcionBebidas = {"Agua[0]", "Gaseosa[1]", "Cerveza[2]"};									 /* opciones de bebidas que el cliente elige */
-void mostrarPedidoCliente(void);
 
 int main(void)
 {
 	firstScreen();
-	ingresarDatosClientes();
+	generarBinario();
+	grabarArchivoConsumoClientes();
+	finalizarGrabadoRegistros();
 	esperarIntro();
 	return 0;
 }
@@ -46,8 +50,36 @@ int main(void)
 void generarBinario(void)
 {
 	f_RegistrosClientes = fopen("ConsumoClientes.dat", "wb");
-	printf("\nSe creo el archivo del consumo de los clientecon sus gastos!");
+	printf("\nSe creo el archivo del consumo de los clientes con sus gastos!");
 }
+
+void grabarArchivoConsumoClientes(void)
+{
+	/* proceso de guardar los registros de los clientes en un archivo */
+	printf("\n\nDesea ingresar datos de clientes al archivo? s/n: ");
+	char respuesta = caracterRespuesta();
+	while (respuesta != 'n' && respuesta != 'N')
+	{
+		ingresarDatosClientes();
+		grabarRegistros();
+		printf("\n\n\nDesea ingresar datos de clientes al archivo? s/n: ");
+		respuesta = caracterRespuesta();
+	}
+}
+
+
+void grabarRegistros(void)
+{
+	/* se grabara en el archivo el un registro correspondiente al cliente*/
+	fwrite(&vPedidoCliente, sizeof(tPedidoCliente), 1, f_RegistrosClientes);
+	printf("\n\n\tRegistro de los pedidos del cliente insertado! ");
+}
+
+void finalizarGrabadoRegistros(void)
+{
+	fclose(f_RegistrosClientes); /* se cierra el archivo */
+}
+
 /* estos dos mostrar se puede hacer en una funcion, pasando como parametro el vector y la cantidad de sus elementos */
 void mostrarOpcionesComidas(void)
 {
@@ -69,18 +101,18 @@ void mostrarOpcionesBebidas(void)
 
 void ingresarPedidoComida(void)
 {
-	char centinela;
+	system("cls");
 	printf("\nDesea ingresar un pedido que realizo un cliente para comer? S = si | N = no  ");
-	fflush(stdin);
-	scanf("%c", &centinela);
-	while (centinela != 'N' && centinela != 'n')
+	char respuesta = caracterRespuesta();
+	while (respuesta != 'N' && respuesta != 'n')
 	{
 		puts("\nPor favor ingrese la opcion que el cliente solicito: ");
 		mostrarOpcionesComidas();
 		int opElegido;
 		printf("\nOpcion: ");
 		scanf("%d", &opElegido);
-
+		/* alternativa multiple que aumenta el contador de una celda del array dependiendo de que pidio el cliente para comer.  */
+		/* asi conocemos que cosas eligio y que cantidades */
 		switch (opElegido)
 		{
 
@@ -106,18 +138,16 @@ void ingresarPedidoComida(void)
 		}
 		/* condicion para continuar cargando pedidos del cliente */
 		printf("\nDesea ingresar un pedido para comer del cliente? S = si | N = no  ");
-		fflush(stdin);
-		scanf("%c", &centinela);
+		respuesta = caracterRespuesta();
 	}
 }
 
 void ingresarPedidoBebida(void)
 {
-	char centinela;
+	system("cls");
 	printf("\nDesea ingresar un pedido que realizo un cliente para beber? S = si | N = no  ");
-	fflush(stdin);
-	scanf("%c", &centinela);
-	while (centinela != 'N' && centinela != 'n')
+	char respuesta = caracterRespuesta();
+	while (respuesta != 'N' && respuesta != 'n')
 	{
 		puts("\nPor favor ingrese la opcion que el cliente solicito: ");
 		mostrarOpcionesBebidas();
@@ -142,8 +172,7 @@ void ingresarPedidoBebida(void)
 		}
 		/* condicion para continuar cargando pedidos del cliente */
 		printf("\nDesea ingresar un pedido para beber del cliente? S = si | N = no");
-		fflush(stdin);
-		scanf("%c", &centinela);
+		respuesta = caracterRespuesta();
 	}
 }
 /* muestra los dos vectores correspondientes al pedido de comida y bebida respectivamente*/
@@ -202,6 +231,14 @@ void mostrarFechaYHora(void)
 	time_t t = time(NULL);
 	struct tm *tm = localtime(&t);
 	printf("\n\n\n\n\t\t\t\t\t%s", asctime(tm));
+}
+
+char caracterRespuesta(void)
+{
+	char centinela;
+	fflush(stdin);
+	scanf("%c", &centinela);
+	return centinela;
 }
 
 void esperarIntro(void)
