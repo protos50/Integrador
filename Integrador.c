@@ -13,7 +13,7 @@ void generarBinario(void), ingresarDatosClientes(void), mostrarOpcionesComidas(v
 void ingresarPedidoBebida(void), ingresarPedidoComida(void), mostrarPedidoCliente(void), mostrarPedidoCliente(void);
 void grabarArchivoConsumoClientes(void), grabarRegistros(void), finalizarGrabadoRegistros(void);
 char caracterRespuesta(void);
-
+/* asdasdasd */
 typedef char tString[midChar];
 typedef char tLongString[longChar];
 typedef int tVPedidosComida[cantComidas];
