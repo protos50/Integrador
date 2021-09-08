@@ -39,9 +39,11 @@ tOpcionBebidas opcionBebidas = {"Agua[0]", "Gaseosa[1]", "Cerveza[2]"};									
 int main(void)
 {
 	firstScreen();
+	/* esto se puede hacer en un menu, preguntando si quiero registrar un cliente en el fichero de los pedidos y gastos de clientes */
 	generarBinario();
 	grabarArchivoConsumoClientes();
 	finalizarGrabadoRegistros();
+
 	esperarIntro();
 	return 0;
 }
