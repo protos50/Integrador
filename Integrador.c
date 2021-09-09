@@ -12,6 +12,7 @@ void esperarIntro(void), firstScreen(void), mostrarFechaYHora(void), mensajeBien
 void generarBinario(void), ingresarDatosClientes(void), mostrarOpcionesComidas(void), mostrarOpcionesBebidas(void);
 void ingresarPedidoBebida(void), ingresarPedidoComida(void), mostrarPedidoCliente(void), mostrarPedidoCliente(void);
 void grabarArchivoConsumoClientes(void), grabarRegistros(void), finalizarGrabadoRegistros(void);
+float calcularCuentaTotal(void);
 char caracterRespuesta(void);
 /* asdasdasd */
 typedef char tString[midChar];
@@ -35,6 +36,8 @@ FILE *f_RegistrosClientes;
 /* de la comida por la cantidad correspondiente que pidio. el total se guardara en totalCuenta que se guardara en el registro y en el archivo */
 tOpcionComidas opcionComidas = {"Hamburguesa[0]", "Papas[1]", "Ensalada[2]", "Pancho[3]", "Veganos[4]"}; /* opciones de comidas que el cliente elige */
 tOpcionBebidas opcionBebidas = {"Agua[0]", "Gaseosa[1]", "Cerveza[2]"};									 /* opciones de bebidas que el cliente elige */
+tVPedidosComida preciosComidas = {400, 130, 150, 200, 1000}; /* arrays con precios de las comidas y bebidas */
+tVPedidosBebida preciosBebidas = {70, 120, 180};
 
 int main(void)
 {
@@ -177,6 +180,22 @@ void ingresarPedidoBebida(void)
 		respuesta = caracterRespuesta();
 	}
 }
+/* calcula el total que gasto el cliente en sus pedidos y lo acumula en cuentaTotal */
+float calcularCuentaTotal(void)
+{
+	int i;
+	for (i = 0; i < cantComidas; i++)
+	{
+		vPedidoCliente.totalCuenta += vPedidoCliente.pedidoComida[i] * preciosComidas[i];
+	}
+
+	for (i = 0; i < cantBebidas; i++)
+	{
+		vPedidoCliente.totalCuenta += vPedidoCliente.pedidoBebida[i] * preciosBebidas[i];
+	}
+	return (vPedidoCliente.totalCuenta);
+}
+
 /* muestra los dos vectores correspondientes al pedido de comida y bebida respectivamente*/
 void mostrarPedidoCliente(void)
 {
@@ -192,13 +211,14 @@ void mostrarPedidoCliente(void)
 	{
 		printf("\n%s:\t %d", opcionBebidas[i], vPedidoCliente.pedidoBebida[i]);
 	}
+	puts("\n----------------------------------");
+	printf("Cuenta total del cliente: $%.2f",  calcularCuentaTotal());
 }
 
 void ingresarDatosClientes(void)
 {
 	ingresarPedidoComida();
 	ingresarPedidoBebida();
-	/* scanf("%f", &vPedidoCliente.totalCuenta); falta funcion para ingresar y mostrar el total del gasto del cliente*/
 	system("cls");
 	mostrarPedidoCliente();
 }
