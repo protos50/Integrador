@@ -3,52 +3,152 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #define longChar 100
 #define midChar 35
 #define cantComidas 5
 #define cantBebidas 3
+#define MAX 5
 
-void esperarIntro(void), firstScreen(void), mostrarFechaYHora(void), mensajeBienvenida(void), mensaje(void);
-void generarBinario(void), ingresarDatosClientes(void), mostrarOpcionesComidas(void), mostrarOpcionesBebidas(void);
-void ingresarPedidoBebida(void), ingresarPedidoComida(void), mostrarPedidoCliente(void), mostrarPedidoCliente(void);
-void grabarArchivoConsumoClientes(void), grabarRegistros(void), finalizarGrabadoRegistros(void);
-float calcularCuentaTotal(void);
-char caracterRespuesta(void);
-/* asdasdasd */
 typedef char tString[midChar];
 typedef char tLongString[longChar];
-typedef int tVPedidosComida[cantComidas];
-typedef int tVPedidosBebida[cantBebidas];
 typedef tString tOpcionComidas[cantComidas];
 typedef tString tOpcionBebidas[cantBebidas];
 
 typedef struct /* estructura de lo que pide un cliente y su correspondiente costo */
 {
-	tVPedidosComida pedidoComida;
-	tVPedidosBebida pedidoBebida;
+	int idCliente;
+	int pedidoComida[5];
+	int pedidoBebida[3];
 	float totalCuenta;
 } tPedidoCliente;
 
-tPedidoCliente vPedidoCliente;
+tPedidoCliente vr_PedidoCliente;
+
+typedef struct
+{
+	tPedidoCliente vVectorPedidos[MAX];
+	int frente;
+	int final;
+} tCola;
+
+tCola totalPedidos;
+
+void esperarIntro(void), firstScreen(void), mostrarFechaYHora(void), mensajeBienvenida(void), mensaje(void);
+void generarBinario(void), ingresarDatosClientes(void), mostrarOpcionesComidas(void), mostrarOpcionesBebidas(void);
+void mostrarPedidoCliente(void), mostrarPedidoCliente(void), finalizarGrabadoRegistros(void), CountdownTimer(void);
+void grabarArchivoConsumoClientes(void), grabarRegistros(void), inicializarCola(void), Menu(void);
+void ingresarPedidoBebida(void), ingresarPedidoComida(void), ingresarIdCliente(void);
+void agregarElemento(void), inicializarVectores(void), visualizarElementos(tCola);
+
+bool colaVacia(tCola);
+bool colaLlena(tCola);
+float calcularCuentaTotal(void);
+char caracterRespuesta(void);
+
 FILE *f_RegistrosClientes;
-/* utilizar struct para el registro de comida con su respectivo precio. por ahora crear un vector con los correspondientes precios de cada elemento */
-/* cada elemento de comida se correspondera con su indice en el vector de precios para calcular el total que pago el cliente. multiplicando el precio*/
-/* de la comida por la cantidad correspondiente que pidio. el total se guardara en totalCuenta que se guardara en el registro y en el archivo */
+
 tOpcionComidas opcionComidas = {"Hamburguesa[0]", "Papas[1]", "Ensalada[2]", "Pancho[3]", "Veganos[4]"}; /* opciones de comidas que el cliente elige */
 tOpcionBebidas opcionBebidas = {"Agua[0]", "Gaseosa[1]", "Cerveza[2]"};									 /* opciones de bebidas que el cliente elige */
-tVPedidosComida preciosComidas = {400, 130, 150, 200, 1000}; /* arrays con precios de las comidas y bebidas */
-tVPedidosBebida preciosBebidas = {70, 120, 180};
+float preciosComidas[5] = {400, 130, 150, 200, 1000};													 /* arrays con precios de las comidas y bebidas */
+float preciosBebidas[3] = {70, 120, 180};
+
+int opElegidoComida;
+int opElegidoBebida;
 
 int main(void)
 {
 	firstScreen();
-	/* esto se puede hacer en un menu, preguntando si quiero registrar un cliente en el fichero de los pedidos y gastos de clientes */
-	generarBinario();
+	Menu();
+	/*generarBinario();
 	grabarArchivoConsumoClientes();
-	finalizarGrabadoRegistros();
-
-	esperarIntro();
+	finalizarGrabadoRegistros(); */
+	CountdownTimer();
 	return 0;
+}
+
+void inicializarCola(void)
+{
+	totalPedidos.frente = -1;
+	totalPedidos.final = -1;
+	printf("Se inicializo la cola de pedidos ... \n");
+	esperarIntro();
+}
+
+bool colaVacia(tCola pCola)
+{
+	return (pCola.frente == -1 && pCola.final == -1);
+}
+
+bool colaLlena(tCola pCola)
+{
+	return (pCola.final == (MAX - 1));
+}
+
+void agregarElemento()
+{
+	int i;
+	if (colaLlena(totalPedidos))
+	{
+		printf("No hay lugares disponibles!\n");
+	}
+	else
+	{
+		/* Hay lugar para insertar */
+
+		/* Actualizar el indice final */
+		totalPedidos.final = totalPedidos.final + 1;
+
+		/* Almacenar el elemento en la lista  */
+
+		ingresarDatosClientes();
+		totalPedidos.vVectorPedidos[totalPedidos.final] = vr_PedidoCliente;
+		inicializarVectores();
+		/* Verificar si se esta insertando el primer elemento */
+		if (totalPedidos.final == 0)
+		{
+			/* Es el primer elemento */
+			totalPedidos.frente = 0;
+		}
+		printf("\n\n\tEl pedido del cliente ingreso a la cola!\n");
+	}
+	esperarIntro();
+}
+
+void visualizarElementos(tCola pCola)
+{
+	int i;
+	if (colaVacia(pCola))
+	{
+		printf("\nNo hay pedidos realizados\n");
+		esperarIntro();
+	}
+	else
+	{
+		printf("Clientes en la cola: \n");
+		for (i = pCola.frente; i <= pCola.final; i++)
+		{
+			int j;
+			puts("\n----------------------------------");
+			puts("\n\nDatos del cliente:");
+			printf("ID del cliente: %d", pCola.vVectorPedidos[i].idCliente);
+			puts("\n\nComidas Pedidas:");
+			//dado que pedidoComida es un vector tengo que mostrarlo con un for tambien
+			for (j = 0; j < cantComidas; j++)
+			{
+				printf("\n%s:\t %d", opcionComidas[j], pCola.vVectorPedidos[i].pedidoComida[j]);
+			}
+			puts("\n\n\nBebidas Pedidas:");
+			for (j = 0; j < cantBebidas; j++)
+			{
+				printf("\n%s:\t %d", opcionBebidas[j], pCola.vVectorPedidos[i].pedidoBebida[j]);
+			}
+			puts("\n----------------------------------");
+			printf("Cuenta total del cliente: $%.2f", pCola.vVectorPedidos[i].totalCuenta);
+		}
+		puts("\n");
+		esperarIntro();
+	}
 }
 
 /* Se abre un archivo nuevo y se asigna a la variable archivo */
@@ -58,9 +158,9 @@ void generarBinario(void)
 	printf("\nSe creo el archivo del consumo de los clientes con sus gastos!");
 }
 
-void grabarArchivoConsumoClientes(void)
+/*void grabarArchivoConsumoClientes(void)
 {
-	/* proceso de guardar los registros de los clientes en un archivo */
+	//proceso de guardar los registros de los clientes en un archivo 
 	printf("\n\nDesea ingresar datos de clientes al archivo? s/n: ");
 	char respuesta = caracterRespuesta();
 	while (respuesta != 'n' && respuesta != 'N')
@@ -70,19 +170,18 @@ void grabarArchivoConsumoClientes(void)
 		printf("\n\n\nDesea ingresar datos de clientes al archivo? s/n: ");
 		respuesta = caracterRespuesta();
 	}
-}
+}*/
 
-
-void grabarRegistros(void)
+/*void grabarRegistros(void)
 {
-	/* se grabara en el archivo el un registro correspondiente al cliente*/
+	// se grabara en el archivo el un registro correspondiente al cliente 
 	fwrite(&vPedidoCliente, sizeof(tPedidoCliente), 1, f_RegistrosClientes);
 	printf("\n\n\tRegistro de los pedidos del cliente insertado! ");
-}
+}*/
 
 void finalizarGrabadoRegistros(void)
 {
-	fclose(f_RegistrosClientes); /* se cierra el archivo */
+	fclose(f_RegistrosClientes); // se cierra el archivo
 }
 
 /* estos dos mostrar se puede hacer en una funcion, pasando como parametro el vector y la cantidad de sus elementos */
@@ -104,6 +203,14 @@ void mostrarOpcionesBebidas(void)
 	}
 }
 
+void ingresarIdCliente(void)
+{
+	int idCliente;
+	printf("\nIngrese id del cliente: ");
+	scanf("%d", &idCliente);
+	vr_PedidoCliente.idCliente = idCliente;
+}
+
 void ingresarPedidoComida(void)
 {
 	system("cls");
@@ -122,23 +229,23 @@ void ingresarPedidoComida(void)
 		{
 
 		case 0:
-			vPedidoCliente.pedidoComida[0]++;
+			vr_PedidoCliente.pedidoComida[0]++;
 			break;
 
 		case 1:
-			vPedidoCliente.pedidoComida[1]++;
+			vr_PedidoCliente.pedidoComida[1]++;
 			break;
 
 		case 2:
-			vPedidoCliente.pedidoComida[2]++;
+			vr_PedidoCliente.pedidoComida[2]++;
 			break;
 
 		case 3:
-			vPedidoCliente.pedidoComida[3]++;
+			vr_PedidoCliente.pedidoComida[3]++;
 			break;
 
 		case 4:
-			vPedidoCliente.pedidoComida[4]++;
+			vr_PedidoCliente.pedidoComida[4]++;
 			break;
 		}
 		/* condicion para continuar cargando pedidos del cliente */
@@ -159,24 +266,25 @@ void ingresarPedidoBebida(void)
 		int opElegido;
 		printf("\nOpcion: ");
 		scanf("%d", &opElegido);
-
+		/* alternativa multiple que aumenta el contador de una celda del array dependiendo de que pidio el cliente para comer.  */
+		/* asi conocemos que cosas eligio y que cantidades */
 		switch (opElegido)
 		{
 
 		case 0:
-			vPedidoCliente.pedidoBebida[0]++;
+			vr_PedidoCliente.pedidoBebida[0]++;
 			break;
 
 		case 1:
-			vPedidoCliente.pedidoBebida[1]++;
+			vr_PedidoCliente.pedidoBebida[1]++;
 			break;
 
 		case 2:
-			vPedidoCliente.pedidoBebida[2]++;
+			vr_PedidoCliente.pedidoBebida[2]++;
 			break;
 		}
 		/* condicion para continuar cargando pedidos del cliente */
-		printf("\nDesea ingresar un pedido para beber del cliente? S = si | N = no");
+		printf("\nDesea ingresar un pedido para beber del cliente? S = si | N = no  ");
 		respuesta = caracterRespuesta();
 	}
 }
@@ -184,43 +292,107 @@ void ingresarPedidoBebida(void)
 float calcularCuentaTotal(void)
 {
 	int i;
+	float total = 0;
 	for (i = 0; i < cantComidas; i++)
 	{
-		vPedidoCliente.totalCuenta += vPedidoCliente.pedidoComida[i] * preciosComidas[i];
+		total = total + (vr_PedidoCliente.pedidoComida[i]) * (preciosComidas[i]);
 	}
 
 	for (i = 0; i < cantBebidas; i++)
 	{
-		vPedidoCliente.totalCuenta += vPedidoCliente.pedidoBebida[i] * preciosBebidas[i];
+		total = total + (vr_PedidoCliente.pedidoBebida[i]) * (preciosBebidas[i]);
 	}
-	return (vPedidoCliente.totalCuenta);
+
+	vr_PedidoCliente.totalCuenta = total;
+
+	return total;
 }
 
 /* muestra los dos vectores correspondientes al pedido de comida y bebida respectivamente*/
 void mostrarPedidoCliente(void)
 {
 	int i;
-	puts("Datos del cliente:");
+	puts("\nDatos del cliente:");
+	printf("ID del cliente: %d", vr_PedidoCliente.idCliente);
 	puts("\n\nComidas Pedidas:");
 	for (i = 0; i < cantComidas; i++)
 	{
-		printf("\n%s:\t %d", opcionComidas[i], vPedidoCliente.pedidoComida[i]);
+		printf("\n%s:\t %d", opcionComidas[i], vr_PedidoCliente.pedidoComida[i]);
 	}
 	puts("\n\n\nBebidas Pedidas:");
 	for (i = 0; i < cantBebidas; i++)
 	{
-		printf("\n%s:\t %d", opcionBebidas[i], vPedidoCliente.pedidoBebida[i]);
+		printf("\n%s:\t %d", opcionBebidas[i], vr_PedidoCliente.pedidoBebida[i]);
 	}
 	puts("\n----------------------------------");
-	printf("Cuenta total del cliente: $%.2f",  calcularCuentaTotal());
+	printf("Cuenta total del cliente: $%.2f", calcularCuentaTotal());
 }
 
 void ingresarDatosClientes(void)
 {
+	ingresarIdCliente();
 	ingresarPedidoComida();
 	ingresarPedidoBebida();
 	system("cls");
 	mostrarPedidoCliente();
+}
+
+void inicializarVectores(void)
+{
+	int i;
+	for (i = 0; i < cantComidas; i++)
+	{
+		vr_PedidoCliente.pedidoComida[i] = 0;
+	}
+	for (i = 0; i < cantBebidas; i++)
+	{
+		vr_PedidoCliente.pedidoBebida[i] = 0;
+	}
+}
+
+void Menu(void)
+{
+	system("cls");
+	int opcion;
+	printf("\t*** Opciones disponibles ***\n");
+	printf("\t1- Iniciar Cola.  \n\t2- Agregar pedidos a la Cola. \n\t3- Visualizar pedidos en Cola. \n\t4- Guardar comprobantes de cola de pedidos.\n");
+	printf("\t5- Salir \n");
+	printf("\nOpcion: ");
+	scanf("%d", &opcion);
+	switch (opcion)
+	{
+	case 1: /*  */
+		system("cls");
+		inicializarCola();
+		Menu();
+		break;
+	case 2: /*  */
+		system("cls");
+		agregarElemento();
+		Menu();
+		break;
+	case 3: /*  */
+		system("cls");
+		visualizarElementos(totalPedidos);
+		Menu();
+		break;
+	case 4: /*  */
+		system("cls");
+		puts("Este servicio aun esta en desarrollo. Por favor comuniquese con el centro de atencion al cliente del proveedor.\n\n\t Lo sentimos :(");
+		esperarIntro();
+		Menu();
+		break;
+	case 5: /* Finalizar Programa */
+		system("cls");
+		printf("\n");
+		break;
+	default: /* el default me vuelve a pedir que ingrese una opcion de este menu */
+		fflush(stdin);
+		printf("\n\nUsted ingreso una opcion no valida. Intentelo nuevamente");
+		Sleep(2000);
+		Menu();
+		break;
+	}
 }
 
 void firstScreen(void)
@@ -265,8 +437,31 @@ char caracterRespuesta(void)
 
 void esperarIntro(void)
 {
-	/* para continuar espera que el ususario ingrese enter */
+	/* para continuar espera que el usuario ingrese enter */
 	fflush(stdin);
 	puts("\n\n\t\t\t   Pulsar Intro para continuar...");
 	getchar();
+}
+
+void CountdownTimer(void)
+{
+	int i;
+	system("cls");
+	puts("Gracias por utilizar ->FOOD NOTIFIER<-");
+	puts("\nSoftware desarrollado por: \n\t\t\t  -Pedelhez, Matias \n\t\t\t  -Soto, Micaela \n\t\t\t  -X, Gabriela \n\t\t\t  -Zini, Franco Joaquin");
+	printf("\nEl programa ->FOOD NOTIFIER<- se cerrara en:  10...");
+	Sleep(1000);
+	for (i = 9; i > 0; i--)
+	{
+		if (i == 1)
+		{
+			printf("%d", i);
+			Sleep(1000);
+		}
+		else
+		{
+			printf("%d...", i);
+			Sleep(1000);
+		}
+	}
 }
