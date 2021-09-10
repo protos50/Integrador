@@ -378,7 +378,10 @@ void Menu(void)
 		break;
 	case 4: /*  */
 		system("cls");
-		puts("Este servicio aun esta en desarrollo. Por favor comuniquese con el centro de atencion al cliente del proveedor.\n\n\t Lo sentimos :(");
+		/*puts("Este servicio aun esta en desarrollo. Por favor comuniquese con el centro de atencion al cliente del proveedor.\n\n\t Lo sentimos :("); */
+		generarBinario();
+
+		finalizarGrabadoRegistros(); 
 		esperarIntro();
 		Menu();
 		break;
