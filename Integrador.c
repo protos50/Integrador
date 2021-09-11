@@ -37,7 +37,7 @@ tCola totalPedidos;
 void esperarIntro(void), firstScreen(void), mostrarFechaYHora(void), mensajeBienvenida(void), mensaje(void);
 void generarBinario(void), ingresarDatosClientes(void), mostrarOpcionesComidas(void), mostrarOpcionesBebidas(void);
 void mostrarPedidoCliente(void), mostrarPedidoCliente(void), finalizarGrabadoRegistros(void), CountdownTimer(void);
-void grabarArchivoConsumoClientes(void), grabarRegistros(void), inicializarCola(void), Menu(void);
+void grabarArchivoConsumoClientes(tCola), grabarRegistros(int), inicializarCola(void), Menu(void);
 void ingresarPedidoBebida(void), ingresarPedidoComida(void), ingresarIdCliente(void);
 void agregarElemento(void), inicializarVectores(void), visualizarElementos(tCola);
 
@@ -60,9 +60,6 @@ int main(void)
 {
 	firstScreen();
 	Menu();
-	/*generarBinario();
-	grabarArchivoConsumoClientes();
-	finalizarGrabadoRegistros(); */
 	CountdownTimer();
 	return 0;
 }
@@ -157,27 +154,23 @@ void generarBinario(void)
 	f_RegistrosClientes = fopen("ConsumoClientes.dat", "wb");
 	printf("\nSe creo el archivo del consumo de los clientes con sus gastos!");
 }
-
-/*void grabarArchivoConsumoClientes(void)
+/* grabar los registros en el archivo */
+void grabarArchivoConsumoClientes(tCola pCola)
 {
+	int i;
 	//proceso de guardar los registros de los clientes en un archivo 
-	printf("\n\nDesea ingresar datos de clientes al archivo? s/n: ");
-	char respuesta = caracterRespuesta();
-	while (respuesta != 'n' && respuesta != 'N')
+	for (i = pCola.frente; i <= pCola.final; i++)
 	{
-		ingresarDatosClientes();
-		grabarRegistros();
-		printf("\n\n\nDesea ingresar datos de clientes al archivo? s/n: ");
-		respuesta = caracterRespuesta();
+		grabarRegistros(i);
 	}
-}*/
+}
 
-/*void grabarRegistros(void)
+void grabarRegistros(int I)
 {
 	// se grabara en el archivo el un registro correspondiente al cliente 
-	fwrite(&vPedidoCliente, sizeof(tPedidoCliente), 1, f_RegistrosClientes);
+	fwrite(&totalPedidos.vVectorPedidos[I], sizeof(tPedidoCliente), 1, f_RegistrosClientes);
 	printf("\n\n\tRegistro de los pedidos del cliente insertado! ");
-}*/
+}
 
 void finalizarGrabadoRegistros(void)
 {
@@ -380,7 +373,7 @@ void Menu(void)
 		system("cls");
 		/*puts("Este servicio aun esta en desarrollo. Por favor comuniquese con el centro de atencion al cliente del proveedor.\n\n\t Lo sentimos :("); */
 		generarBinario();
-
+		grabarArchivoConsumoClientes(totalPedidos);
 		finalizarGrabadoRegistros(); 
 		esperarIntro();
 		Menu();
