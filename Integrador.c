@@ -40,6 +40,7 @@ void mostrarPedidoCliente(void), mostrarPedidoCliente(void), finalizarGrabadoReg
 void grabarArchivoConsumoClientes(tCola), grabarRegistros(int), inicializarCola(void), Menu(void);
 void ingresarPedidoBebida(void), ingresarPedidoComida(void), ingresarIdCliente(void);
 void agregarElemento(void), inicializarVectores(void), visualizarElementos(tCola);
+void removerElemento(tCola, int);
 
 bool colaVacia(tCola);
 bool colaLlena(tCola);
@@ -110,6 +111,43 @@ void agregarElemento()
 		printf("\n\n\tEl pedido del cliente ingreso a la cola!\n");
 	}
 	esperarIntro();
+}
+
+void removerElemento(tCola cola, int pos)
+{
+
+    //Pedido de cliente vacio
+    tPedidoCliente vPedidoVacio;
+
+    if (colaVacia(cola))
+    { //Checkea si existen elementos para borrar
+        printf("No hay elementos para eliminar");
+    }
+    else
+    {
+        if (pos < 0 || pos > cola.final)
+        { //Checkea que el numero de posicion sea válido
+            printf("Posicion invalida. Elija una menor o igual a %d", cola.final);
+        }
+        else
+        {
+            if (pos == cola.final)
+            { //Metodo para borrar en el caso que el elemento esté en el final
+                cola.vVectorPedidos[cola.final] = vPedidoVacio;
+                cola.final--;
+            }
+            else
+            { //si la posicion es distinta del lugar del final, la operacion es la misma
+                int i;
+                for (i = pos; i < cola.final; i++)
+                { //Reemplaza todos los lugares de la lista por el que está en frente
+                    cola.vVectorPedidos[i] = cola.vVectorPedidos[i + 1];
+                }
+                cola.vVectorPedidos[cola.final] = vPedidoVacio; //El ultimo elemento siempre se repite, por lo que lo vaciamos
+                cola.final--;
+            }
+        }
+    }
 }
 
 void visualizarElementos(tCola pCola)
