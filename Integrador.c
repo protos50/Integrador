@@ -125,7 +125,7 @@ void removerElemento(tCola cola, int pos)
     }
     else
     {
-        if (pos < 0 || pos > cola.final)
+        if (pos <= 0 || pos >= cola.final)
         { //Checkea que el numero de posicion sea válido
             printf("Posicion invalida. Elija una menor o igual a %d", cola.final);
         }
@@ -137,14 +137,14 @@ void removerElemento(tCola cola, int pos)
                 cola.final--;
             }
             else
-            { //si la posicion es distinta del lugar del final, la operacion es la misma
+            { //Metodo para borrar con índice personalizado
                 int i;
                 for (i = pos; i < cola.final; i++)
-                { //Reemplaza todos los lugares de la lista por el que está en frente
+                { //Reemplaza cada elemento de la lista por el que está en frente
                     cola.vVectorPedidos[i] = cola.vVectorPedidos[i + 1];
                 }
-                cola.vVectorPedidos[cola.final] = vPedidoVacio; //El ultimo elemento siempre se repite, por lo que lo vaciamos
-                cola.final--;
+                cola.vVectorPedidos[cola.final] = vPedidoVacio; //El ultimo elemento siempre queda repitido, por lo que se vacía
+                cola.final--; 
             }
         }
     }
