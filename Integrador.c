@@ -14,7 +14,7 @@ typedef char tString[midChar];
 typedef char tLongString[longChar];
 typedef tString tOpcionComidas[cantComidas];
 typedef tString tOpcionBebidas[cantBebidas];
-
+/**/
 typedef struct /* estructura de lo que pide un cliente y su correspondiente costo */
 {
 	int idCliente;
