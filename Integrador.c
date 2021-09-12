@@ -1,4 +1,4 @@
-/* Proyecto Integrador - 1ra. Etapa */
+/* Proyecto Integrador - 2da. Etapa */
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
