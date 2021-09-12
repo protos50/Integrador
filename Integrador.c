@@ -501,7 +501,7 @@ void CountdownTimer(void)
 }
 //recibe como parámetro el nro de cliente a eliminar y trabaja con la cola global
 void removerCliente( int nroCliente){
-    
+    int auxPos;
     tPedidoCliente vPedidoVacio;
 
     if (colaVacia(totalPedidos)) { 
@@ -511,10 +511,10 @@ void removerCliente( int nroCliente){
 		//recorre la cola hasta el final
 	    	for (i=0; i< totalPedidos.final; i++) {
         		//en el caso en el que nroCliente coincida con el nroCliente guardado en la estructura dentro de la cola, borra la estructura
-			if (nroCliente == totalPedidos.vVectorPedidos.idCliente [i]){
+			if (nroCliente == totalPedidos.vVectorPedidos[i].idCliente){
         			totalPedidos.vVectorPedidos [i] = vPedidoVacio;
         			//guarda la posicion en la que se encuentra el elemento a eliminar, a fin de mover luego los registros
-				int auxPos = i;
+				auxPos = i;
         		}
             }
             for (i = auxPos; i < totalPedidos.final; i++){ //Reemplaza todos los lugares de la lista por el que está en frente
