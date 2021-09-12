@@ -15,7 +15,6 @@ void firstScreen();
 void mostrarFechaYHora(); 
 void mensajeBienvenida(); 
 void mensaje();
-void countdownTimer();
 	//Menú
 void menu();
 	//Ingreso de datos
@@ -28,18 +27,21 @@ void mostrarOpcionesBebidas();
 void inicializarVectoresPedidos();
 char caracterRespuesta();
 void mostrarPedidoCliente ();
+float calcularCuentaTotal();
 
 	//Grabado de registros en archivo
 void generarBinario();
 void grabarPedido();
 void cerrarArchivo();
 void ingresarPedido();
-void ingresarRta();
+
 	//apertura de archivo para mostrar pedidos grabados
 void abrirArchivoLectura ();
 void mostrarPedidosGrabados();
 void leerRegistro (); 
 void mostrarPedidoClienteDeArchivo ();
+	//pantalla de salida
+void countdownTimer();
 
 //Tipos de datos personalizados
 typedef struct /* estructura de lo que pide un cliente y su correspondiente costo */
@@ -57,16 +59,14 @@ typedef tString tOpcionBebidas[cantBebidas];
 
 //Declaración de variables globales
 tPedidoCliente vr_PedidoCliente;
-FILE * f_RegistrosClientes;    
-
-
+FILE * f_RegistrosClientes;
+int opElegidoComida;
+int opElegidoBebida;    
+//Asignación de valores a vectores 
 tOpcionComidas opcionComidas = {"Hamburguesa[0]", "Papas[1]", "Ensalada[2]", "Pancho[3]", "Veganos[4]"}; /* opciones de comidas que el cliente elige */
 tOpcionBebidas opcionBebidas = {"Agua[0]", "Gaseosa[1]", "Cerveza[2]"};									 /* opciones de bebidas que el cliente elige */
 float preciosComidas[5] = {400, 130, 150, 200, 1000};													 /* arrays con precios de las comidas y bebidas */
 float preciosBebidas[3] = {70, 120, 180};
-
-int opElegidoComida;
-int opElegidoBebida;
 
 //Bloque principal
 int main(){
