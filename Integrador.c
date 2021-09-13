@@ -1,5 +1,5 @@
 /* Proyecto Integrador - 2da. Etapa */
-/* master */
+
 
 #include <stdio.h>
 #include <string.h>
