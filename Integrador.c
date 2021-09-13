@@ -1,5 +1,6 @@
-/* Proyecto Integrador - 1ra. Etapa */
+/* Proyecto Integrador - 2da. Etapa */
 /* master */
+
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -42,6 +43,8 @@ void grabarArchivoConsumoClientes(tCola), grabarRegistros(int), inicializarCola(
 void ingresarPedidoBebida(void), ingresarPedidoComida(void), ingresarIdCliente(void);
 void agregarElemento(void), inicializarVectores(void), visualizarElementos(tCola);
 void removerElemento(tCola *);
+void iniciarProcesoLectura(void), procesarPedidosClientes(void), finalizarProcesoLectura(void), obtenerCliente(void);
+void procesarPedido(void);
 
 bool colaVacia(tCola);
 bool colaLlena(tCola);
@@ -59,6 +62,7 @@ float preciosBebidas[3] = {70, 120, 180};
 int opElegidoComida;
 int opElegidoBebida;
 int controlIniciacion = 0;
+int cantPedidosRegistrados = 0;
 
 int main(void)
 {
@@ -164,8 +168,7 @@ void removerElemento(tCola *cola)
 				/* Metodo para borrar con índice n */
 				int i;
 				/* borra la estructura igualando a un pedido vacio */
-				//cola.vVectorPedidos[posicionPedidoEliminar] = vPedidoVacio;
-				//printf("\nSe elimino el pedido del cliente en la posicion %d de la cola", posicionPedidoEliminar);
+				printf("\nSe elimino el pedido del cliente ID: %d que se ecnontraba en la posicion %d de la cola", posicionPedidoEliminar);
 				for (i = posicionPedidoEliminar; i < cola->final; i++)
 				{
 					/* Reemplaza cada elemento de la lista por el que está en frente de el */
@@ -250,6 +253,10 @@ void grabarArchivoConsumoClientes(tCola pCola)
 	}
 }
 
+void iniciarProcesoLectura(void){
+	f_RegistrosClientes = fopen("ConsumoClientes.dat", "rb");
+}
+
 void grabarRegistros(int I)
 {
 	// se grabara en el archivo el un registro correspondiente al cliente
@@ -257,8 +264,36 @@ void grabarRegistros(int I)
 	printf("\n\n\tRegistro de los pedidos del cliente insertado! ");
 }
 
+void procesarPedidosClientes()
+{
+	obtenerCliente();		/* lectura adelantada */
+	while (!feof( f_RegistrosClientes )  )
+	{
+		procesarPedido();
+		obtenerCliente();
+	}	
+}
+
+void procesarPedido()
+{
+	mostrarPedidoCliente();
+	cantPedidosRegistrados++;
+}
+
+void obtenerCliente()
+{
+	/* Se obtiene un registro de un cliente del archivo para leerlo */
+	fread(&vr_PedidoCliente, sizeof(tPedidoCliente), 1, f_RegistrosClientes);
+}
+
 void finalizarGrabadoRegistros(void)
 {
+	fclose(f_RegistrosClientes); // se cierra el archivo
+}
+
+void finalizarProcesoLectura(void)
+{
+	printf("\nCantidad de pedidos registrados: %d", cantPedidosRegistrados);
 	fclose(f_RegistrosClientes); // se cierra el archivo
 }
 
@@ -386,7 +421,7 @@ float calcularCuentaTotal(void)
 	return total;
 }
 
-/* muestra los dos vectores correspondientes al pedido de comida y bebida respectivamente*/
+/* muestra los dos vectores correspondientes al pedido de comida y bebida respectivamente de cada cliente*/
 void mostrarPedidoCliente(void)
 {
 	int i;
@@ -434,7 +469,7 @@ void Menu(void)
 	int opcion;
 	printf("\t*** Opciones disponibles ***\n");
 	printf("\t1- Iniciar Cola.  \n\t2- Agregar pedidos a la Cola. \n\t3- Visualizar pedidos en Cola. \n\t4- Eliminar cliente de la cola. \n");
-	printf("\t5- Guardar comprobantes de cola de pedidos.\n\t6- Salir.");
+	printf("\t5- Guardar comprobantes de los pedidos. \n\t6- Leer los comprobantes de los pedidos guardados. \n\t7- Salir.");
 	printf("\nOpcion: ");
 	scanf("%d", &opcion);
 	switch (opcion)
@@ -454,14 +489,14 @@ void Menu(void)
 		visualizarElementos(totalPedidos);
 		Menu();
 		break;
-	case 4: /*  */
+	case 4: /* Eliminar un cliente de los pedidos */
 		system("cls");
 		removerElemento(&totalPedidos);
 		esperarIntro();
 		Menu();
 		break;
 
-	case 5: /* Eliminar un cliente de los pedidos */
+	case 5: /* Guargar los registros de los pedidos de los clientes a un fichero */
 		system("cls");
 		generarBinario();
 		grabarArchivoConsumoClientes(totalPedidos);
@@ -469,7 +504,15 @@ void Menu(void)
 		esperarIntro();
 		Menu();
 		break;
-	case 6: /* Finalizar Programa */
+	case 6: /* Leer los registros de los pedidos de los clientes desde un fichero  */
+		system("cls");
+		iniciarProcesoLectura();
+		procesarPedidosClientes();
+		finalizarProcesoLectura();
+		esperarIntro();
+		Menu();
+		break;
+	case 7: /* Finalizar Programa */
 		system("cls");
 		printf("\n");
 		break;
