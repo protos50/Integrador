@@ -168,7 +168,7 @@ void removerElemento(tCola *cola)
 				/* Metodo para borrar con índice n */
 				int i;
 				/* borra la estructura igualando a un pedido vacio */
-				printf("\nSe elimino el pedido del cliente ID: %d que se ecnontraba en la posicion %d de la cola", posicionPedidoEliminar);
+				printf("\nSe elimino el pedido del cliente que se encontraba en la posicion %d de la cola", posicionPedidoEliminar);
 				for (i = posicionPedidoEliminar; i < cola->final; i++)
 				{
 					/* Reemplaza cada elemento de la lista por el que está en frente de el */
