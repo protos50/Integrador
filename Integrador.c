@@ -259,7 +259,7 @@ void iniciarProcesoLectura(void){
 
 void grabarRegistros(int I)
 {
-	// se grabara en el archivo el un registro correspondiente al cliente
+	// se grabara en el archivo el registro correspondiente al cliente
 	fwrite(&totalPedidos.vVectorPedidos[I], sizeof(tPedidoCliente), 1, f_RegistrosClientes);
 	printf("\n\n\tRegistro de los pedidos del cliente insertado! ");
 }
