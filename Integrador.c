@@ -408,12 +408,12 @@ float calcularCuentaTotal(void)
 	float total = 0;
 	for (i = 0; i < cantComidas; i++)
 	{
-		total = total + (vr_PedidoCliente.pedidoComida[i]) * (preciosComidas[i]);
+		total += (vr_PedidoCliente.pedidoComida[i]) * (preciosComidas[i]);
 	}
 
 	for (i = 0; i < cantBebidas; i++)
 	{
-		total = total + (vr_PedidoCliente.pedidoBebida[i]) * (preciosBebidas[i]);
+		total += (vr_PedidoCliente.pedidoBebida[i]) * (preciosBebidas[i]);
 	}
 
 	vr_PedidoCliente.totalCuenta = total;
