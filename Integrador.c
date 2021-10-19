@@ -207,7 +207,6 @@ bool seEncuentraCliente(int pIdClientePedido)
 	// se recorre toda la cola verificando si existe un cliente con ese ID
 	while (aux != NULL)
 	{
-
 		if (pIdClientePedido == aux->datosPedidos.idCliente)
 		{
 			// existe el cliente ID que realizo algun pedido, por lo que se retorna true.
@@ -218,7 +217,6 @@ bool seEncuentraCliente(int pIdClientePedido)
 		posClienteBuscado++;
 		aux = aux->siguiente;
 	}
-
 	return existeID;
 }
 
@@ -242,7 +240,9 @@ int cantidadNodos(void)
 
 void visualizarElementos(tCola pCola)
 {
-	int i;
+	tNodo *aux;
+    aux = pCola.principio;
+
 	if (colaVacia(pCola))
 	{
 		printf("\nNo hay pedidos realizados\n");
@@ -251,26 +251,30 @@ void visualizarElementos(tCola pCola)
 	else
 	{
 		printf("Clientes en la cola: \n");
-		for (i = pCola.frente; i <= pCola.final; i++)
-		{
-			int j;
+
+        while (aux != NULL)
+        {
+            int j;
 			puts("\n----------------------------------");
 			puts("\n\nDatos del cliente:");
-			printf("ID del cliente: %d", pCola.vVectorPedidos[i].idCliente);
+			printf("ID del cliente: %d", aux->datosPedidos.idCliente);
 			puts("\n\nComidas Pedidas:");
 			// dado que pedidoComida es un vector tengo que mostrarlo con un for tambien
 			for (j = 0; j < cantComidas; j++)
 			{
-				printf("\n%s:\t %d", opcionComidas[j], pCola.vVectorPedidos[i].pedidoComida[j]);
+				printf("\n%s:\t %d", opcionComidas[j], aux->datosPedidos.pedidoComida[j]);
 			}
 			puts("\n\n\nBebidas Pedidas:");
 			for (j = 0; j < cantBebidas; j++)
 			{
-				printf("\n%s:\t %d", opcionBebidas[j], pCola.vVectorPedidos[i].pedidoBebida[j]);
+				printf("\n%s:\t %d", opcionBebidas[j],aux->datosPedidos.pedidoBebida[j]);
 			}
 			puts("\n----------------------------------");
-			printf("Cuenta total del cliente: $%.2f", pCola.vVectorPedidos[i].totalCuenta);
-		}
+			printf("Cuenta total del cliente: $%.2f", aux->datosPedidos.totalCuenta);
+
+            aux = aux->siguiente;
+        }
+
 		puts("\n");
 		esperarIntro();
 	}
