@@ -205,14 +205,13 @@ bool seEncuentraCliente(int pIdClientePedido)
 	// se recorre toda la cola verificando si existe un cliente con ese ID
 	while (aux != NULL)
 	{
+		posClienteBuscado++;
 		if (pIdClientePedido == aux->datosPedidos.idCliente)
 		{
 			// existe el cliente ID que realizo algun pedido, por lo que se retorna true.
 			existeID = true;
 			break;
 		}
-
-		posClienteBuscado++;
 		aux = aux->siguiente;
 	}
 	return existeID;
@@ -489,6 +488,7 @@ void mostrarPedidoCliente(void)
 
 void ingresarDatosClientes(void)
 {
+	inicializarVectores();
 	ingresarIdCliente();
 	ingresarPedidoComida();
 	ingresarPedidoBebida();
@@ -527,6 +527,7 @@ void Menu(void)
 		break;
 	case 2: /*  */
 		system("cls");
+		ingresarDatosClientes();
 		agregarElemento(vr_PedidoCliente);
 		Menu();
 		break;
