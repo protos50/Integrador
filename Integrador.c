@@ -41,11 +41,10 @@ typedef struct
 
 tCola colaPedidos;
 
-
 void esperarIntro(void), firstScreen(void), mostrarFechaYHora(void), mensajeBienvenida(void), mensaje(void);
 void generarBinario(void), ingresarDatosClientes(void), mostrarOpcionesComidas(void), mostrarOpcionesBebidas(void);
 void mostrarPedidoCliente(void), mostrarPedidoCliente(void), finalizarGrabadoRegistros(void), CountdownTimer(void);
-void grabarArchivoConsumoClientes(tCola), grabarRegistros(int), inicializarCola(void), Menu(void);
+void grabarArchivoConsumoClientes(tCola), grabarRegistros(tNodo*), inicializarCola(void), Menu(void);
 void ingresarPedidoBebida(void), ingresarPedidoComida(void), ingresarIdCliente(void);
 void agregarElemento(tPedidoCliente), inicializarVectores(void), visualizarElementos(tCola);
 void removerElemento(void), eliminarProductoPosicionN(int);
@@ -148,7 +147,7 @@ void removerElemento(void)
 		scanf("%d", &idClientePedido);
 
 		/* Se verifica que el ID ingresado se encuentre en algun pedido.  */
-		if ( ! seEncuentraCliente(idClientePedido) )
+		if (!seEncuentraCliente(idClientePedido))
 		{
 			puts("\nNo se encontro el pedido de ese cliente. ID invalido!"); // no se encontró el ID
 		}
@@ -164,36 +163,35 @@ void removerElemento(void)
 				eliminarProductoPosicionN(posClienteBuscado);
 				// cola.principio = nodoSuprimir->siguiente;
 			}
-
 		}
 	}
 }
 
 void eliminarProductoPosicionN(int pPosClienteBuscado)
 {
-            int i;
-            tNodo *aux;
-            tNodo *nodoSuprimir;
+	int i;
+	tNodo *aux;
+	tNodo *nodoSuprimir;
 
-            aux = colaPedidos.principio;
+	aux = colaPedidos.principio;
 
-            for (i = 1; i < pPosClienteBuscado - 1; i++)
-            {
-                aux = aux->siguiente;
-            }
+	for (i = 1; i < pPosClienteBuscado - 1; i++)
+	{
+		aux = aux->siguiente;
+	}
 
-            nodoSuprimir = aux->siguiente;
-			//verificacion si se trata del ultimo nodo de la cola
-			if ( cantidadNodos() == pPosClienteBuscado )
-			{
-				//el puntero al nodo del final de la cola apunta ahora al nodo anterior al que se eliminará
-				colaPedidos.final = aux;
-			}
+	nodoSuprimir = aux->siguiente;
+	// verificacion si se trata del ultimo nodo de la cola
+	if (cantidadNodos() == pPosClienteBuscado)
+	{
+		// el puntero al nodo del final de la cola apunta ahora al nodo anterior al que se eliminará
+		colaPedidos.final = aux;
+	}
 
-            aux->siguiente = nodoSuprimir->siguiente;   //si nodoSuprimir es el ultimo nodo entonces: aux->siguiente = NULL
-            printf("\nSe elimino el cliente ID: %d de la posicion %d.\n", nodoSuprimir->datosPedidos.idCliente, pPosClienteBuscado);
-            free(nodoSuprimir);
-            nodoSuprimir = NULL;
+	aux->siguiente = nodoSuprimir->siguiente; // si nodoSuprimir es el ultimo nodo entonces: aux->siguiente = NULL
+	printf("\nSe elimino el cliente ID: %d de la posicion %d.\n", nodoSuprimir->datosPedidos.idCliente, pPosClienteBuscado);
+	free(nodoSuprimir);
+	nodoSuprimir = NULL;
 }
 
 /* recibe como parámetro el nro de cliente a eliminar y trabaja con la cola global*/
@@ -241,7 +239,7 @@ int cantidadNodos(void)
 void visualizarElementos(tCola pCola)
 {
 	tNodo *aux;
-    aux = pCola.principio;
+	aux = pCola.principio;
 
 	if (colaVacia(pCola))
 	{
@@ -252,9 +250,9 @@ void visualizarElementos(tCola pCola)
 	{
 		printf("Clientes en la cola: \n");
 
-        while (aux != NULL)
-        {
-            int j;
+		while (aux != NULL)
+		{
+			int j;
 			puts("\n----------------------------------");
 			puts("\n\nDatos del cliente:");
 			printf("ID del cliente: %d", aux->datosPedidos.idCliente);
@@ -267,13 +265,13 @@ void visualizarElementos(tCola pCola)
 			puts("\n\n\nBebidas Pedidas:");
 			for (j = 0; j < cantBebidas; j++)
 			{
-				printf("\n%s:\t %d", opcionBebidas[j],aux->datosPedidos.pedidoBebida[j]);
+				printf("\n%s:\t %d", opcionBebidas[j], aux->datosPedidos.pedidoBebida[j]);
 			}
 			puts("\n----------------------------------");
 			printf("Cuenta total del cliente: $%.2f", aux->datosPedidos.totalCuenta);
 
-            aux = aux->siguiente;
-        }
+			aux = aux->siguiente;
+		}
 
 		puts("\n");
 		esperarIntro();
@@ -289,11 +287,14 @@ void generarBinario(void)
 /* grabar los registros en el archivo */
 void grabarArchivoConsumoClientes(tCola pCola)
 {
-	int i;
+	tNodo * aux;
+	aux = pCola.principio;
 	// proceso de guardar los registros de los clientes en un archivo
-	for (i = pCola.frente; i <= pCola.final; i++)
+	while (aux != NULL)
 	{
-		grabarRegistros(i);
+		grabarRegistros(aux);
+
+		aux = aux->siguiente;
 	}
 }
 
@@ -302,10 +303,10 @@ void iniciarProcesoLectura(void)
 	f_RegistrosClientes = fopen("ConsumoClientes.dat", "rb");
 }
 
-void grabarRegistros(int I)
+void grabarRegistros(tNodo * pAux )
 {
 	// se grabara en el archivo el registro correspondiente al cliente
-	fwrite(&totalPedidos.vVectorPedidos[I], sizeof(tPedidoCliente), 1, f_RegistrosClientes);
+	fwrite(&pAux->datosPedidos, sizeof(tPedidoCliente), 1, f_RegistrosClientes);
 	printf("\n\n\tRegistro de los pedidos del cliente insertado! ");
 }
 
@@ -526,17 +527,17 @@ void Menu(void)
 		break;
 	case 2: /*  */
 		system("cls");
-		agregarElemento();
+		agregarElemento(vr_PedidoCliente);
 		Menu();
 		break;
 	case 3: /*  */
 		system("cls");
-		visualizarElementos(totalPedidos);
+		visualizarElementos(colaPedidos);
 		Menu();
 		break;
 	case 4: /* Eliminar un cliente de los pedidos */
 		system("cls");
-		removerElemento(&totalPedidos);
+		removerElemento();
 		esperarIntro();
 		Menu();
 		break;
@@ -544,7 +545,7 @@ void Menu(void)
 	case 5: /* Guargar los registros de los pedidos de los clientes a un fichero */
 		system("cls");
 		generarBinario();
-		grabarArchivoConsumoClientes(totalPedidos);
+		grabarArchivoConsumoClientes(colaPedidos);
 		finalizarGrabadoRegistros();
 		esperarIntro();
 		Menu();
