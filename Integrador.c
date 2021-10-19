@@ -44,10 +44,10 @@ tCola colaPedidos;
 void esperarIntro(void), firstScreen(void), mostrarFechaYHora(void), mensajeBienvenida(void), mensaje(void);
 void generarBinario(void), ingresarDatosClientes(void), mostrarOpcionesComidas(void), mostrarOpcionesBebidas(void);
 void mostrarPedidoCliente(void), mostrarPedidoCliente(void), finalizarGrabadoRegistros(void), CountdownTimer(void);
-void grabarArchivoConsumoClientes(tCola), grabarRegistros(tNodo*), inicializarCola(void), Menu(void);
+void grabarArchivoConsumoClientes(tCola), grabarRegistros(tNodo *), inicializarCola(void), Menu(void);
 void ingresarPedidoBebida(void), ingresarPedidoComida(void), ingresarIdCliente(void);
 void agregarElemento(tPedidoCliente), inicializarVectores(void), visualizarElementos(tCola);
-void removerElemento(void), eliminarProductoPosicionN(int);
+void removerElemento(void), eliminarProductoPosicionN(int), removerPrimerElemento(void);
 void iniciarProcesoLectura(void), procesarPedidosClientes(void), finalizarProcesoLectura(void), obtenerCliente(void);
 void procesarPedido(void);
 
@@ -156,14 +156,41 @@ void removerElemento(void)
 			// consultar si la cola es unitaria para re inicializar la cola
 			if (colaPedidos.principio == colaPedidos.final)
 			{
+				controlIniciacion = 0;
 				inicializarCola();
 			}
 			else // la cola tiene mas de 1 elemento y se borrara por id
 			{
 				eliminarProductoPosicionN(posClienteBuscado);
-				// cola.principio = nodoSuprimir->siguiente;
 			}
 		}
+	}
+}
+
+void removerPrimerElemento(void)
+{
+	if (colaVacia(colaPedidos))
+	{
+		printf("No hay elementos para eliminar");
+	}
+	else // si existe por lo menos un nodo para borrar
+	{
+		tNodo *nodoSuprimir;
+		nodoSuprimir = colaPedidos.principio;
+		// re inicializar la cola
+		if (colaPedidos.principio == colaPedidos.final)
+		{
+			controlIniciacion = 0;
+			inicializarCola();
+		}
+		else
+		{ // se borra elemento del frente de la cola
+			colaPedidos.principio = nodoSuprimir->siguiente;
+		}
+
+		printf("\nSe elimino el cliente ID: %d del frente de la Cola de pedidos\n", nodoSuprimir->datosPedidos.idCliente);
+		free(nodoSuprimir);
+		nodoSuprimir = NULL;
 	}
 }
 
@@ -286,7 +313,7 @@ void generarBinario(void)
 /* grabar los registros en el archivo */
 void grabarArchivoConsumoClientes(tCola pCola)
 {
-	tNodo * aux;
+	tNodo *aux;
 	aux = pCola.principio;
 	// proceso de guardar los registros de los clientes en un archivo
 	while (aux != NULL)
@@ -302,7 +329,7 @@ void iniciarProcesoLectura(void)
 	f_RegistrosClientes = fopen("ConsumoClientes.dat", "rb");
 }
 
-void grabarRegistros(tNodo * pAux )
+void grabarRegistros(tNodo *pAux)
 {
 	// se grabara en el archivo el registro correspondiente al cliente
 	fwrite(&pAux->datosPedidos, sizeof(tPedidoCliente), 1, f_RegistrosClientes);
@@ -538,7 +565,8 @@ void Menu(void)
 		break;
 	case 4: /* Eliminar un cliente de los pedidos */
 		system("cls");
-		removerElemento();
+		printf("Que desea hacer:\n\n*Eliminar del frente de la cola: 1\n*Eliminar por ID de cliente: Cualquier otro caracter \n\t\t\t\t\t\t    _");
+		(caracterRespuesta() == '1') ? removerPrimerElemento() : removerElemento();
 		esperarIntro();
 		Menu();
 		break;
