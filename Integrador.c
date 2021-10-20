@@ -75,7 +75,7 @@ int totalPedidos = 0;
 
 int main(void)
 {
-	// firstScreen();
+	firstScreen();
 	Menu();
 	CountdownTimer();
 	return 0;
