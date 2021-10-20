@@ -50,6 +50,7 @@ void agregarElemento(tPedidoCliente), inicializarVectores(void), visualizarEleme
 void removerElemento(void), eliminarProductoPosicionN(int), removerPrimerElemento(void);
 void iniciarProcesoLectura(void), procesarPedidosClientes(void), finalizarProcesoLectura(void), obtenerCliente(void);
 void procesarPedido(void);
+void inicializacionCorte(void), procesoCorte(void), unPedido(int *, float *);
 
 bool colaVacia(tCola);
 bool seEncuentraCliente(int);
@@ -63,16 +64,18 @@ tOpcionComidas opcionComidas = {"Hamburguesa[0]", "Papas[1]", "Ensalada[2]", "Pa
 tOpcionBebidas opcionBebidas = {"Agua[0]", "Gaseosa[1]", "Cerveza[2]"};									 /* opciones de bebidas que el cliente elige */
 float preciosComidas[5] = {400, 130, 150, 200, 1000};													 /* arrays con precios de las comidas y bebidas */
 float preciosBebidas[3] = {70, 120, 180};
+float sumTotalVentas = 0;
 
 int opElegidoComida;
 int opElegidoBebida;
 int controlIniciacion = 0;
 int cantPedidosRegistrados = 0;
 int posClienteBuscado;
+int totalPedidos = 0;
 
 int main(void)
 {
-	firstScreen();
+	// firstScreen();
 	Menu();
 	CountdownTimer();
 	return 0;
@@ -304,6 +307,126 @@ void visualizarElementos(tCola pCola)
 	}
 }
 
+void inicializacionCorte(void)
+{
+	// mayorNota = 0;
+
+	// abro en modo lectura el archivo .dat
+	iniciarProcesoLectura();
+	// lectura adelantada del primer registro del fichero
+	obtenerCliente();
+
+	printf("\n\t\t *** Listado de pedidos por intervalo de precios *** ");
+	printf("\n-----------------------------------------------------\n");
+	printf("  Rango precio \t|\tID \t|\t Total");
+	printf("\n-----------------------------------------------------\n");
+}
+// (recordar)a mejorar y optimizar esta funcion de corte de control :-)
+void procesoCorte(void)
+{
+	int cantVentasRango = 0;
+	float sumVentasRango = 0;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	printf(" \n$0 - $800 \n");
+	while (!feof(f_RegistrosClientes))
+	{
+		if (vr_PedidoCliente.totalCuenta >= 0 && vr_PedidoCliente.totalCuenta <= 800)
+		{
+			unPedido(&cantVentasRango, &sumVentasRango);
+		}
+		obtenerCliente();
+	}
+
+	if (cantVentasRango == 0)
+	{
+		printf("\n No hay ventas registras en este rango de precio!\n");
+	}
+	else
+	{
+		printf("\n\n Cantidad de ventas entre $0 y $800: %d", cantVentasRango);
+		printf("\n\n Promedio de ventas entre $0 y $800: %.2f", sumVentasRango / cantVentasRango);
+	}
+
+	fclose(f_RegistrosClientes); // se cierra el archivo
+	printf("\n----------------------------------------------------------------------------------------\n");
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	iniciarProcesoLectura();
+	cantVentasRango = 0;
+	sumVentasRango = 0;
+	printf(" \n$800 - $1600 \n");
+	while (!feof(f_RegistrosClientes))
+	{
+		if (vr_PedidoCliente.totalCuenta > 800 && vr_PedidoCliente.totalCuenta <= 1600)
+		{
+			unPedido(&cantVentasRango, &sumVentasRango);
+		}
+		obtenerCliente();
+	}
+
+	if (cantVentasRango == 0)
+	{
+		printf("\n No hay ventas registras en este rango de precio!\n");
+	}
+	else
+	{
+		printf("\n\n Cantidad de ventas entre $800 y $1600: %d", cantVentasRango);
+		printf("\n\n Promedio de ventas entre $800 y $1600: %.2f", sumVentasRango / cantVentasRango);
+	}
+
+	fclose(f_RegistrosClientes); // se cierra el archivo
+	printf("\n----------------------------------------------------------------------------------------\n");
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	iniciarProcesoLectura();
+	cantVentasRango = 0;
+	sumVentasRango = 0;
+	printf(" \nMayor a $1600 \n");
+	while (!feof(f_RegistrosClientes))
+	{
+		if (vr_PedidoCliente.totalCuenta >= 1600)
+		{
+			unPedido(&cantVentasRango, &sumVentasRango);
+		}
+		obtenerCliente();
+	}
+
+	if (cantVentasRango == 0)
+	{
+		printf("\n No hay ventas registras en este rango de precio!\n");
+	}
+	else
+	{
+		printf("\n\n Cantidad de ventas mayor a 1600: %d", cantVentasRango);
+		printf("\n Promedio de ventas mayor a 1600: %.2f", sumVentasRango / cantVentasRango);
+	}
+
+	fclose(f_RegistrosClientes); // se cierra el archivo
+	printf("\n----------------------------------------------------------------------------------------\n");
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	printf("\n\n----------------------------------------------------------------------------------------\n");
+
+	printf("\n Cantidad de ventas realizadas en total: %d", totalPedidos);
+	printf("\n Cantidad recaudada en total: %.2f", sumTotalVentas);
+	printf("\n Promedio de ventas total: %.2f", sumTotalVentas / totalPedidos);
+
+	printf("\n----------------------------------------------------------------------------------------\n");
+}
+
+void unPedido(int *pCantVentasRango, float *pSumVentasRango)
+{
+	float totalCliente = vr_PedidoCliente.totalCuenta;
+	int ID = vr_PedidoCliente.idCliente;
+	sumTotalVentas += totalCliente;
+	totalPedidos++;
+	*pSumVentasRango += totalCliente;
+	*pCantVentasRango += 1;
+	printf("\n\t\t\t%d \t\t %.2f", ID, totalCliente);
+}
+
 /* Se abre un archivo nuevo y se asigna a la variable archivo */
 void generarBinario(void)
 {
@@ -336,7 +459,7 @@ void grabarRegistros(tNodo *pAux)
 	printf("\n\n\tRegistro de los pedidos del cliente insertado! ");
 }
 
-void procesarPedidosClientes()
+void procesarPedidosClientes(void)
 {
 	obtenerCliente(); /* lectura adelantada */
 	while (!feof(f_RegistrosClientes))
@@ -346,13 +469,13 @@ void procesarPedidosClientes()
 	}
 }
 
-void procesarPedido()
+void procesarPedido(void)
 {
 	mostrarPedidoCliente();
 	cantPedidosRegistrados++;
 }
 
-void obtenerCliente()
+void obtenerCliente(void)
 {
 	/* Se obtiene un registro de un cliente del archivo para leerlo */
 	fread(&vr_PedidoCliente, sizeof(tPedidoCliente), 1, f_RegistrosClientes);
@@ -542,7 +665,7 @@ void Menu(void)
 	int opcion;
 	printf("\t*** Opciones disponibles ***\n");
 	printf("\t1- Iniciar Cola.  \n\t2- Agregar pedidos a la Cola. \n\t3- Visualizar pedidos en Cola. \n\t4- Eliminar cliente de la cola. \n");
-	printf("\t5- Guardar comprobantes de los pedidos. \n\t6- Leer los comprobantes de los pedidos guardados. \n\t7- Salir.");
+	printf("\t5- Guardar comprobantes de los pedidos. \n\t6- Leer los comprobantes de los pedidos guardados. \n\t7- Corte de control. \n\t8- Salir.");
 	printf("\nOpcion: ");
 	scanf("%d", &opcion);
 	switch (opcion)
@@ -588,6 +711,13 @@ void Menu(void)
 		Menu();
 		break;
 	case 7: /* Finalizar Programa */
+		system("cls");
+		inicializacionCorte();
+		procesoCorte();
+		esperarIntro();
+		Menu();
+		break;
+	case 8: /* Finalizar Programa */
 		system("cls");
 		printf("\n");
 		break;
