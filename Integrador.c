@@ -1,5 +1,5 @@
-/* Proyecto Integrador - 2da. Etapa */
-/* master */
+/* Proyecto Integrador - 3ra. Etapa */
+/* rama estapa-3 */
 
 #include <stdio.h>
 #include <string.h>
@@ -27,29 +27,35 @@ typedef struct /* estructura de lo que pide un cliente y su correspondiente cost
 
 tPedidoCliente vr_PedidoCliente;
 
+typedef struct nodo
+{
+	tPedidoCliente datosPedidos;
+	struct nodo *siguiente;
+} tNodo;
+
 typedef struct
 {
-	tPedidoCliente vVectorPedidos[MAX];
-	int frente;
-	int final;
+	tNodo *principio;
+	tNodo *final;
 } tCola;
 
-tCola totalPedidos;
+tCola colaPedidos;
 
 void esperarIntro(void), firstScreen(void), mostrarFechaYHora(void), mensajeBienvenida(void), mensaje(void);
 void generarBinario(void), ingresarDatosClientes(void), mostrarOpcionesComidas(void), mostrarOpcionesBebidas(void);
 void mostrarPedidoCliente(void), mostrarPedidoCliente(void), finalizarGrabadoRegistros(void), CountdownTimer(void);
-void grabarArchivoConsumoClientes(tCola), grabarRegistros(int), inicializarCola(void), Menu(void);
+void grabarArchivoConsumoClientes(tCola), grabarRegistros(tNodo *), inicializarCola(void), Menu(void);
 void ingresarPedidoBebida(void), ingresarPedidoComida(void), ingresarIdCliente(void);
-void agregarElemento(void), inicializarVectores(void), visualizarElementos(tCola);
-void removerElemento(tCola *);
+void agregarElemento(tPedidoCliente), inicializarVectores(void), visualizarElementos(tCola);
+void removerElemento(void), eliminarProductoPosicionN(int), removerPrimerElemento(void);
 void iniciarProcesoLectura(void), procesarPedidosClientes(void), finalizarProcesoLectura(void), obtenerCliente(void);
 void procesarPedido(void);
+void inicializacionCorte(void), procesoCorte(void), unPedido(int *, float *);
 
 bool colaVacia(tCola);
-bool colaLlena(tCola);
+bool seEncuentraCliente(int);
+int cantidadNodos(void);
 float calcularCuentaTotal(void);
-int encontrarPedidoCliente(int);
 char caracterRespuesta(void);
 
 FILE *f_RegistrosClientes;
@@ -58,11 +64,14 @@ tOpcionComidas opcionComidas = {"Hamburguesa[0]", "Papas[1]", "Ensalada[2]", "Pa
 tOpcionBebidas opcionBebidas = {"Agua[0]", "Gaseosa[1]", "Cerveza[2]"};									 /* opciones de bebidas que el cliente elige */
 float preciosComidas[5] = {400, 130, 150, 200, 1000};													 /* arrays con precios de las comidas y bebidas */
 float preciosBebidas[3] = {70, 120, 180};
+float sumTotalVentas = 0;
 
 int opElegidoComida;
 int opElegidoBebida;
 int controlIniciacion = 0;
 int cantPedidosRegistrados = 0;
+int posClienteBuscado;
+int totalPedidos = 0;
 
 int main(void)
 {
@@ -76,8 +85,8 @@ void inicializarCola(void)
 {
 	if (controlIniciacion == 0)
 	{
-		totalPedidos.frente = -1;
-		totalPedidos.final = -1;
+		colaPedidos.principio = NULL;
+		colaPedidos.final = NULL;
 		printf("Se inicializo la cola de pedidos ... \n");
 		esperarIntro();
 		controlIniciacion++;
@@ -91,118 +100,176 @@ void inicializarCola(void)
 
 bool colaVacia(tCola pCola)
 {
-	return (pCola.frente == -1 && pCola.final == -1);
+	return (pCola.principio == NULL && pCola.final == NULL);
 }
 
-bool colaLlena(tCola pCola)
+void agregarElemento(tPedidoCliente pPedidoCliente)
 {
-	return (pCola.final == (MAX - 1));
-}
+	tNodo *nuevoNodo;
 
-void agregarElemento()
-{
-	int i;
+	nuevoNodo = (tNodo *)malloc(sizeof(tNodo));
 
-	if (colaLlena(totalPedidos))
+	nuevoNodo->datosPedidos = pPedidoCliente;
+
+	nuevoNodo->siguiente = NULL;
+
+	if (colaVacia(colaPedidos))
 	{
-		printf("No hay lugares disponibles!\n");
+		// estamos insertando el primer nodo
+		colaPedidos.principio = nuevoNodo;
+		colaPedidos.final = nuevoNodo;
 	}
 	else
 	{
-		/* Hay lugar para insertar */
-
-		/* Actualizar el indice final */
-		totalPedidos.final = totalPedidos.final + 1;
-
-		/* Almacenar el elemento en la lista  */
-
-		ingresarDatosClientes();
-		totalPedidos.vVectorPedidos[totalPedidos.final] = vr_PedidoCliente;
-		inicializarVectores();
-		/* Verificar si se esta insertando el primer elemento */
-		if (totalPedidos.final == 0)
-		{
-			/* Es el primer elemento */
-			totalPedidos.frente = 0;
-		}
-		printf("\n\n\tEl pedido del cliente ingreso a la cola!\n");
+		// cuando ya hay por lo menos un elemento
+		colaPedidos.final->siguiente = nuevoNodo;
+		colaPedidos.final = nuevoNodo;
 	}
+
+	printf("\n\n\tEl pedido del cliente ingreso a la cola!\n");
+
 	esperarIntro();
 }
 
-void removerElemento(tCola *cola)
+void removerElemento(void)
 {
 	int idClientePedido;
-	tPedidoCliente vPedidoVacio; /* Declara un registro de pedido de cliente vacio */
 
-	if (colaVacia(*cola))
-	{ //Checkea si existen elementos para borrar
+	// Checkea si existen elementos para borrar
+	if (colaVacia(colaPedidos))
+	{
 		printf("No hay elementos para eliminar");
 	}
-	else
+	else // si existe por lo menos un nodo para borrar
 	{
+		tNodo *nodoSuprimir;
+		nodoSuprimir = colaPedidos.principio;
+
+		// ingreso ID del cliente que se quiere eliminar de la cola
 		puts("Por favor ingrese el ID del cliente que desea eliminar en la cola de los pedidos: ");
 		scanf("%d", &idClientePedido);
-		int posicionPedidoEliminar = encontrarPedidoCliente(idClientePedido);
-		/* Se verifica que el id ingresado se encuentre en algun pedido. Si es -5 no esta ese id en la cola */
-		if (posicionPedidoEliminar == -5)
+
+		/* Se verifica que el ID ingresado se encuentre en algun pedido.  */
+		if (!seEncuentraCliente(idClientePedido))
 		{
-			puts("\nNo se encontro el pedido de ese cliente. ID invalido!");
+			puts("\nNo se encontro el pedido de ese cliente. ID invalido!"); // no se encontró el ID
 		}
-		else
+		else // sí se encuentró el ID para borrar ese registro de pedido
 		{
-			if (posicionPedidoEliminar == cola->final)
+			// consultar si la cola es unitaria para re inicializar la cola
+			if (colaPedidos.principio == colaPedidos.final)
 			{
-				/* Metodo para borrar en el caso que el elemento esté en el final */
-				cola->vVectorPedidos[cola->final] = vPedidoVacio;
-				cola->final--;
-				puts("\nSe elimino el pedido del ultimo cliente en la cola");
-				if (cola->final == -1)
-				{
-					cola->frente = -1;
-					puts("\nLa cola se vacio!");
-				}
+				controlIniciacion = 0;
+				inicializarCola();
 			}
-			else
+			else // la cola tiene mas de 1 elemento y se borrara por id
 			{
-				/* Metodo para borrar con índice n */
-				int i;
-				/* borra la estructura igualando a un pedido vacio */
-				printf("\nSe elimino el pedido del cliente que se encontraba en la posicion %d de la cola", posicionPedidoEliminar);
-				for (i = posicionPedidoEliminar; i < cola->final; i++)
-				{
-					/* Reemplaza cada elemento de la lista por el que está en frente de el */
-					cola->vVectorPedidos[i] = cola->vVectorPedidos[i + 1];
-				}
-				cola->vVectorPedidos[cola->final] = vPedidoVacio; //El ultimo elemento siempre queda repitido, por lo que se vacía
-				cola->final--;
-				puts("\nCola reubicada correctamente");
+				eliminarProductoPosicionN(posClienteBuscado);
 			}
-			/* si se borra el unico elemento en la cola, re inicializa la cola. */
 		}
 	}
 }
 
-/* recibe como parámetro el nro de cliente a eliminar y trabaja con la cola global*/
-int encontrarPedidoCliente(int pIdClientePedido)
+void removerPrimerElemento(void)
 {
-	int posicionPedido = -5;
-	int i;
-	//recorre la cola hasta el final
-	for (i = totalPedidos.frente; i <= totalPedidos.final; i++)
+	if (colaVacia(colaPedidos))
 	{
-		if (pIdClientePedido == totalPedidos.vVectorPedidos[i].idCliente)
+		printf("No hay elementos para eliminar");
+	}
+	else // si existe por lo menos un nodo para borrar
+	{
+		tNodo *nodoSuprimir;
+		nodoSuprimir = colaPedidos.principio;
+		// re inicializar la cola
+		if (colaPedidos.principio == colaPedidos.final)
 		{
-			//guarda la posicion en la que se encuentra el elemento a eliminar, a fin de mover luego los registros
-			posicionPedido = i;
+			controlIniciacion = 0;
+			inicializarCola();
+		}
+		else
+		{ // se borra elemento del frente de la cola
+			colaPedidos.principio = nodoSuprimir->siguiente;
+		}
+
+		printf("\nSe elimino el cliente ID: %d del frente de la Cola de pedidos\n", nodoSuprimir->datosPedidos.idCliente);
+		free(nodoSuprimir);
+		nodoSuprimir = NULL;
+	}
+}
+
+void eliminarProductoPosicionN(int pPosClienteBuscado)
+{
+	int i;
+	tNodo *aux;
+	tNodo *nodoSuprimir;
+
+	aux = colaPedidos.principio;
+
+	for (i = 1; i < pPosClienteBuscado - 1; i++)
+	{
+		aux = aux->siguiente;
+	}
+
+	nodoSuprimir = aux->siguiente;
+	// verificacion si se trata del ultimo nodo de la cola
+	if (cantidadNodos() == pPosClienteBuscado)
+	{
+		// el puntero al nodo del final de la cola apunta ahora al nodo anterior al que se eliminará
+		colaPedidos.final = aux;
+	}
+
+	aux->siguiente = nodoSuprimir->siguiente; // si nodoSuprimir es el ultimo nodo entonces: aux->siguiente = NULL
+	printf("\nSe elimino el cliente ID: %d de la posicion %d.\n", nodoSuprimir->datosPedidos.idCliente, pPosClienteBuscado);
+	free(nodoSuprimir);
+	nodoSuprimir = NULL;
+}
+
+/* recibe como parámetro el nro de cliente a eliminar y trabaja con la cola global*/
+bool seEncuentraCliente(int pIdClientePedido)
+{
+	bool existeID = false;
+	tNodo *aux;
+	posClienteBuscado = 0;
+	aux = colaPedidos.principio;
+
+	// se recorre toda la cola verificando si existe un cliente con ese ID
+	while (aux != NULL)
+	{
+		posClienteBuscado++;
+		if (pIdClientePedido == aux->datosPedidos.idCliente)
+		{
+			// existe el cliente ID que realizo algun pedido, por lo que se retorna true.
+			existeID = true;
+			break;
+		}
+		aux = aux->siguiente;
+	}
+	return existeID;
+}
+
+int cantidadNodos(void)
+{
+	int cantidadNodos = 0;
+
+	if (!colaVacia(colaPedidos))
+	{
+		tNodo *aux;
+		aux = colaPedidos.principio;
+
+		while (aux != NULL)
+		{
+			cantidadNodos++;
+			aux = aux->siguiente;
 		}
 	}
-	return posicionPedido;
+	return cantidadNodos;
 }
 
 void visualizarElementos(tCola pCola)
 {
-	int i;
+	tNodo *aux;
+	aux = pCola.principio;
+
 	if (colaVacia(pCola))
 	{
 		printf("\nNo hay pedidos realizados\n");
@@ -211,29 +278,153 @@ void visualizarElementos(tCola pCola)
 	else
 	{
 		printf("Clientes en la cola: \n");
-		for (i = pCola.frente; i <= pCola.final; i++)
+
+		while (aux != NULL)
 		{
 			int j;
 			puts("\n----------------------------------");
 			puts("\n\nDatos del cliente:");
-			printf("ID del cliente: %d", pCola.vVectorPedidos[i].idCliente);
+			printf("ID del cliente: %d", aux->datosPedidos.idCliente);
 			puts("\n\nComidas Pedidas:");
-			//dado que pedidoComida es un vector tengo que mostrarlo con un for tambien
+			// dado que pedidoComida es un vector tengo que mostrarlo con un for tambien
 			for (j = 0; j < cantComidas; j++)
 			{
-				printf("\n%s:\t %d", opcionComidas[j], pCola.vVectorPedidos[i].pedidoComida[j]);
+				printf("\n%s:\t %d", opcionComidas[j], aux->datosPedidos.pedidoComida[j]);
 			}
 			puts("\n\n\nBebidas Pedidas:");
 			for (j = 0; j < cantBebidas; j++)
 			{
-				printf("\n%s:\t %d", opcionBebidas[j], pCola.vVectorPedidos[i].pedidoBebida[j]);
+				printf("\n%s:\t %d", opcionBebidas[j], aux->datosPedidos.pedidoBebida[j]);
 			}
 			puts("\n----------------------------------");
-			printf("Cuenta total del cliente: $%.2f", pCola.vVectorPedidos[i].totalCuenta);
+			printf("Cuenta total del cliente: $%.2f", aux->datosPedidos.totalCuenta);
+
+			aux = aux->siguiente;
 		}
+
 		puts("\n");
 		esperarIntro();
 	}
+}
+
+void inicializacionCorte(void)
+{
+	// mayorNota = 0;
+
+	// abro en modo lectura el archivo .dat
+	iniciarProcesoLectura();
+	// lectura adelantada del primer registro del fichero
+	obtenerCliente();
+
+	printf("\n\t\t *** Listado de pedidos por intervalo de precios *** ");
+	printf("\n-----------------------------------------------------\n");
+	printf("  Rango precio \t|\tID \t|\t Total");
+	printf("\n-----------------------------------------------------\n");
+}
+// (recordar)a mejorar y optimizar esta funcion de corte de control :-)
+void procesoCorte(void)
+{
+	int cantVentasRango = 0;
+	float sumVentasRango = 0;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	printf(" \n$0 - $800 \n");
+	while (!feof(f_RegistrosClientes))
+	{
+		if (vr_PedidoCliente.totalCuenta >= 0 && vr_PedidoCliente.totalCuenta <= 800)
+		{
+			unPedido(&cantVentasRango, &sumVentasRango);
+		}
+		obtenerCliente();
+	}
+
+	if (cantVentasRango == 0)
+	{
+		printf("\n No hay ventas registras en este rango de precio!\n");
+	}
+	else
+	{
+		printf("\n\n Cantidad de ventas entre $0 y $800: %d", cantVentasRango);
+		printf("\n\n Promedio de ventas entre $0 y $800: %.2f", sumVentasRango / cantVentasRango);
+	}
+
+	fclose(f_RegistrosClientes); // se cierra el archivo
+	printf("\n----------------------------------------------------------------------------------------\n");
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	iniciarProcesoLectura();
+	cantVentasRango = 0;
+	sumVentasRango = 0;
+	printf(" \n$800 - $1600 \n");
+	while (!feof(f_RegistrosClientes))
+	{
+		if (vr_PedidoCliente.totalCuenta > 800 && vr_PedidoCliente.totalCuenta <= 1600)
+		{
+			unPedido(&cantVentasRango, &sumVentasRango);
+		}
+		obtenerCliente();
+	}
+
+	if (cantVentasRango == 0)
+	{
+		printf("\n No hay ventas registras en este rango de precio!\n");
+	}
+	else
+	{
+		printf("\n\n Cantidad de ventas entre $800 y $1600: %d", cantVentasRango);
+		printf("\n\n Promedio de ventas entre $800 y $1600: %.2f", sumVentasRango / cantVentasRango);
+	}
+
+	fclose(f_RegistrosClientes); // se cierra el archivo
+	printf("\n----------------------------------------------------------------------------------------\n");
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	iniciarProcesoLectura();
+	cantVentasRango = 0;
+	sumVentasRango = 0;
+	printf(" \nMayor a $1600 \n");
+	while (!feof(f_RegistrosClientes))
+	{
+		if (vr_PedidoCliente.totalCuenta >= 1600)
+		{
+			unPedido(&cantVentasRango, &sumVentasRango);
+		}
+		obtenerCliente();
+	}
+
+	if (cantVentasRango == 0)
+	{
+		printf("\n No hay ventas registras en este rango de precio!\n");
+	}
+	else
+	{
+		printf("\n\n Cantidad de ventas mayor a 1600: %d", cantVentasRango);
+		printf("\n Promedio de ventas mayor a 1600: %.2f", sumVentasRango / cantVentasRango);
+	}
+
+	fclose(f_RegistrosClientes); // se cierra el archivo
+	printf("\n----------------------------------------------------------------------------------------\n");
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	printf("\n\n----------------------------------------------------------------------------------------\n");
+
+	printf("\n Cantidad de ventas realizadas en total: %d", totalPedidos);
+	printf("\n Cantidad recaudada en total: %.2f", sumTotalVentas);
+	printf("\n Promedio de ventas total: %.2f", sumTotalVentas / totalPedidos);
+
+	printf("\n----------------------------------------------------------------------------------------\n");
+}
+
+void unPedido(int *pCantVentasRango, float *pSumVentasRango)
+{
+	float totalCliente = vr_PedidoCliente.totalCuenta;
+	int ID = vr_PedidoCliente.idCliente;
+	sumTotalVentas += totalCliente;
+	totalPedidos++;
+	*pSumVentasRango += totalCliente;
+	*pCantVentasRango += 1;
+	printf("\n\t\t\t%d \t\t %.2f", ID, totalCliente);
 }
 
 /* Se abre un archivo nuevo y se asigna a la variable archivo */
@@ -245,42 +436,46 @@ void generarBinario(void)
 /* grabar los registros en el archivo */
 void grabarArchivoConsumoClientes(tCola pCola)
 {
-	int i;
-	//proceso de guardar los registros de los clientes en un archivo
-	for (i = pCola.frente; i <= pCola.final; i++)
+	tNodo *aux;
+	aux = pCola.principio;
+	// proceso de guardar los registros de los clientes en un archivo
+	while (aux != NULL)
 	{
-		grabarRegistros(i);
+		grabarRegistros(aux);
+
+		aux = aux->siguiente;
 	}
 }
 
-void iniciarProcesoLectura(void){
+void iniciarProcesoLectura(void)
+{
 	f_RegistrosClientes = fopen("ConsumoClientes.dat", "rb");
 }
 
-void grabarRegistros(int I)
+void grabarRegistros(tNodo *pAux)
 {
-	// se grabara en el archivo el un registro correspondiente al cliente
-	fwrite(&totalPedidos.vVectorPedidos[I], sizeof(tPedidoCliente), 1, f_RegistrosClientes);
+	// se grabara en el archivo el registro correspondiente al cliente
+	fwrite(&pAux->datosPedidos, sizeof(tPedidoCliente), 1, f_RegistrosClientes);
 	printf("\n\n\tRegistro de los pedidos del cliente insertado! ");
 }
 
-void procesarPedidosClientes()
+void procesarPedidosClientes(void)
 {
-	obtenerCliente();		/* lectura adelantada */
-	while (!feof( f_RegistrosClientes )  )
+	obtenerCliente(); /* lectura adelantada */
+	while (!feof(f_RegistrosClientes))
 	{
 		procesarPedido();
 		obtenerCliente();
-	}	
+	}
 }
 
-void procesarPedido()
+void procesarPedido(void)
 {
 	mostrarPedidoCliente();
 	cantPedidosRegistrados++;
 }
 
-void obtenerCliente()
+void obtenerCliente(void)
 {
 	/* Se obtiene un registro de un cliente del archivo para leerlo */
 	fread(&vr_PedidoCliente, sizeof(tPedidoCliente), 1, f_RegistrosClientes);
@@ -408,12 +603,12 @@ float calcularCuentaTotal(void)
 	float total = 0;
 	for (i = 0; i < cantComidas; i++)
 	{
-		total = total + (vr_PedidoCliente.pedidoComida[i]) * (preciosComidas[i]);
+		total += (vr_PedidoCliente.pedidoComida[i]) * (preciosComidas[i]);
 	}
 
 	for (i = 0; i < cantBebidas; i++)
 	{
-		total = total + (vr_PedidoCliente.pedidoBebida[i]) * (preciosBebidas[i]);
+		total += (vr_PedidoCliente.pedidoBebida[i]) * (preciosBebidas[i]);
 	}
 
 	vr_PedidoCliente.totalCuenta = total;
@@ -443,6 +638,7 @@ void mostrarPedidoCliente(void)
 
 void ingresarDatosClientes(void)
 {
+	inicializarVectores();
 	ingresarIdCliente();
 	ingresarPedidoComida();
 	ingresarPedidoBebida();
@@ -469,7 +665,7 @@ void Menu(void)
 	int opcion;
 	printf("\t*** Opciones disponibles ***\n");
 	printf("\t1- Iniciar Cola.  \n\t2- Agregar pedidos a la Cola. \n\t3- Visualizar pedidos en Cola. \n\t4- Eliminar cliente de la cola. \n");
-	printf("\t5- Guardar comprobantes de los pedidos. \n\t6- Leer los comprobantes de los pedidos guardados. \n\t7- Salir.");
+	printf("\t5- Guardar comprobantes de los pedidos. \n\t6- Leer los comprobantes de los pedidos guardados. \n\t7- Corte de control. \n\t8- Salir.");
 	printf("\nOpcion: ");
 	scanf("%d", &opcion);
 	switch (opcion)
@@ -481,17 +677,19 @@ void Menu(void)
 		break;
 	case 2: /*  */
 		system("cls");
-		agregarElemento();
+		ingresarDatosClientes();
+		agregarElemento(vr_PedidoCliente);
 		Menu();
 		break;
 	case 3: /*  */
 		system("cls");
-		visualizarElementos(totalPedidos);
+		visualizarElementos(colaPedidos);
 		Menu();
 		break;
 	case 4: /* Eliminar un cliente de los pedidos */
 		system("cls");
-		removerElemento(&totalPedidos);
+		printf("Que desea hacer:\n\n*Eliminar del frente de la cola: 1\n*Eliminar por ID de cliente: Cualquier otro caracter \n\t\t\t\t\t\t    _");
+		(caracterRespuesta() == '1') ? removerPrimerElemento() : removerElemento();
 		esperarIntro();
 		Menu();
 		break;
@@ -499,7 +697,7 @@ void Menu(void)
 	case 5: /* Guargar los registros de los pedidos de los clientes a un fichero */
 		system("cls");
 		generarBinario();
-		grabarArchivoConsumoClientes(totalPedidos);
+		grabarArchivoConsumoClientes(colaPedidos);
 		finalizarGrabadoRegistros();
 		esperarIntro();
 		Menu();
@@ -513,6 +711,13 @@ void Menu(void)
 		Menu();
 		break;
 	case 7: /* Finalizar Programa */
+		system("cls");
+		inicializacionCorte();
+		procesoCorte();
+		esperarIntro();
+		Menu();
+		break;
+	case 8: /* Finalizar Programa */
 		system("cls");
 		printf("\n");
 		break;
